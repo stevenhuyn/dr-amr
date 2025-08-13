@@ -1,0 +1,7 @@
+[
+  {
+    "country": "Indonesia",
+    "indicator": "Regulatory Indicators,Technical Dossier Standards,CTD/ACTD Adoption,Accepts ICH CTD (for innovator products)",
+    "response": "**Here is a high-quality LLM prompt tailored for answering whether Indonesia accepts ICH CTD for innovator products:**\n\n---\n\n**Prompt:**\n\nBased on authoritative regulatory and pharmaceutical sources, does **Indonesia** accept the **ICH Common Technical Document (CTD) format for innovator products**? Please provide a clear yes/no answer, and cite key regulations, guidance documents, or official practices. Describe any limitations or conditions (e.g., only certain product categories, partial acceptance, or ongoing transition). Summarize relevant approval timeframes or processes if mentioned.\n\nPresent evidence from recent regulatory reports, comparative studies, and official ASEAN guidance if available. If the information is ambiguous or in conflict, acknowledge differing viewpoints and indicate which sources are most credible or recent.\n\n**Relevant context:**  \n- Regulatory Indicators: Technical Dossier Standards  \n- CTD/ACTD Adoption: Accepts ICH CTD (for innovator products)  \n- Country: Indonesia  \n- Date of search: August 13, 2025\n\n---\n\nThis prompt ensures Perplexity\u2019s Sonar Deep Research provides a comprehensive, well-sourced answer directly to the policy question."
+  }
+]

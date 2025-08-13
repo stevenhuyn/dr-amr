@@ -1,0 +1,110 @@
+{
+  "Regulatory Indicators": {
+    "Technical Dossier Standards": {
+      "CTD/ACTD Adoption": [
+        "Accepts ICH CTD (for innovator products)",
+        "Accepts ICH CTD (for generics)",
+        "Mandates ACTD (for generics)",
+        "Allows CTD Module 2 (clinical/pharma summaries)",
+        "Publishes CTD/ACTD templates online",
+        "Requires reformatting for submission (vs. accepts preformatted ICH CTD)"
+      ],
+      "Electronic Submissions": [
+        "Accepts eCTD (electronic CTD)",
+        "Accepts digital dossier uploads",
+        "Has a fully digital submission portal",
+        "Offers public MA tracking dashboard"
+      ]
+    },
+    "GMP and Manufacturing Requirements": {
+      "cGMP Compliance": [
+        "Recognises PIC/S certificates",
+        "Member of PIC/S",
+        "Conducts domestic GMP inspections",
+        "Accepts foreign GMP inspections (e.g., from Singapore, EMA, US FDA)"
+      ],
+      "Mutual Recognition": [
+        "Participates in MRP for cGMP or product MA",
+        "Legally bound to accept another AMS's cGMP certificate",
+        "Provides GMP inspection reports online"
+      ]
+    },
+    "CPP and Legalisation": [
+      "Accepts digital CPP",
+      "Accepts non-legalised CPP",
+      "Requires CPP legalisation via embassy",
+      "Requires CPP for new MA",
+      "Requires CPP for renewals/variations",
+      "CPP validity requirement d 1 year"
+    ],
+    "Stability Testing Requirements": [
+      "Requires Zone IVb data (30�C / 75% RH)",
+      "Accepts Zone IVa data",
+      "Accepts 25�C/60% RH if paired with accelerated",
+      "Requires local site-specific stability studies",
+      "Accepts bracketing/matrixing approaches",
+      "Has published stability testing guideline"
+    ],
+    "Halal Certification & Religious Compliance": [
+      "Requires Halal certification for APIs",
+      "Requires Halal compliance for excipients",
+      "Accepts non-Halal with justification",
+      "Requires certification from JAKIM / LPPOM MUI",
+      "Mandates facility audit for Halal certification"
+    ],
+    "Labeling and Language Requirements": {
+      "Language": [
+        "Accepts English-only labels",
+        "Requires local language",
+        "Mandates bilingual labels",
+        "Accepts centralised labeling across ASEAN"
+      ],
+      "Country-Specific Symbols": [
+        "Requires Rx pictogram",
+        "Requires Red dot for prescription",
+        "Standardised warning symbols/phrases published"
+      ]
+    },
+    "NRA Capacity and Review Timelines": {
+      "Timelines & Procedures": [
+        "Average MA approval time d 6 months",
+        "Publishes review timeline targets",
+        "Adopts risk-based review for antimicrobials",
+        "Allows reliance on foreign NRA decisions"
+      ],
+      "Pharmacovigilance": [
+        "Has dedicated pharmacovigilance unit",
+        "Publishes ADR reports",
+        "Participates in WHO UMC programme"
+      ]
+    },
+    "Legal, Policy, and Structural Harmonization": {
+      "ASEAN/PPWG Participation": [
+        "Participates in ASEAN PPWG initiatives",
+        "Publishes compliance updates with ASEAN harmonisation roadmap",
+        "Adopts ASEAN Harmonized Requirements for Antimicrobials"
+      ],
+      "Regulatory Arbitration & MRP": [
+        "Has formal MRP mechanism",
+        "Legally bound to accept other AMS MAs (with conditions)",
+        "Offers arbitration route for MRP disputes",
+        "Accepts EMA-style mutual recognition principles"
+      ]
+    },
+    "Antimicrobial-Specific Policies": {
+      "Priority & Surveillance": [
+        "Has national antimicrobial resistance (AMR) policy",
+        "Lists antimicrobials as controlled substances",
+        "Requires hospital-only restriction for certain AM classes",
+        "Provides import/export controls for antimicrobials",
+        "Publishes AMR surveillance data"
+      ],
+      "Fast Track / Conditional Pathways": [
+        "Offers expedited pathway for antimicrobials",
+        "Accepts foreign conditional approval",
+        "Requires local clinical data for Ams",
+        "Has Named-Patient or Compassionate Use program"
+      ]
+    }
+  }
+}
