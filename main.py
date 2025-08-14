@@ -9,10 +9,8 @@ def load_data():
     """Load countries and indicators from JSON files"""
     with open("countries.json", "r") as f:
         countries = json.load(f)
-
     with open("indicators.json", "r") as f:
         indicators = json.load(f)
-
     return countries, indicators
 
 
@@ -29,77 +27,86 @@ def get_leaf_indicators(indicator_data, path=""):
     return leaf_indicators
 
 
-def generate_research_prompts(countries, indicators):
-    """Generate research prompts for all country-indicator combinations"""
-    research_prompts = []
-
-    for country in countries:
-        for indicator in indicators:
-            print(f"Processing: {country} - {indicator}")
-            try:
-                generated_prompt = generate_research_prompt(country, indicator)
-                if generated_prompt:
-                    research_prompts.append(
-                        {
-                            "country": country,
-                            "indicator": indicator,
-                            "response": generated_prompt,
-                        }
-                    )
-            except Exception as e:
-                print(f"Error processing {country} - {indicator}: {e}")
-                continue
-
-    return research_prompts
+def call_sonar_api(prompt, model="sonar-pro"):
+    """Make API call to Perplexity Sonar"""
+    url = "https://api.perplexity.ai/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {os.environ['SONAR_API_KEY']}",
+        "Content-Type": "application/json",
+    }
+    payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
 
 
-def research_policies(research_prompts):
-    """Research policies using the generated prompts"""
-    responses = {}
+def generate_research_prompt(country, indicator):
+    """Generate research prompt using Perplexity API"""
+    prompt = GEN_RESEARCH_PROMPT.replace("{indicator}", indicator, 1).replace(
+        "{country}", country, 1
+    )
+    return call_sonar_api(prompt)
 
-    for prompt_data in research_prompts:
-        try:
-            policy_result = research_policy(prompt_data["response"])
-            responses[(prompt_data["country"], prompt_data["indicator"])] = (
-                policy_result
-            )
-        except Exception as e:
-            print(
-                f"Error researching policy for {prompt_data['country']} - {prompt_data['indicator']}: {e}"
-            )
-            continue
 
-    return responses
+def research_policy(prompt):
+    """Research policy using Perplexity deep research API"""
+    return call_sonar_api(prompt, "sonar-deep-research")
+
+
+def summarise_report(content):
+    """Extract Yes/No/Partial/Unknown determination from research content"""
+    if not content:
+        return "Unknown"
+    prompt = SUMMARIZE_REPORT_PROMPT.format(content=content)
+    return call_sonar_api(prompt).strip()
 
 
 def extract_content_from_response(policy_result):
     """Extract content string from various response formats"""
     if isinstance(policy_result, dict) and "choices" in policy_result:
         return policy_result["choices"][0]["message"]["content"]
-    elif isinstance(policy_result, str):
-        return policy_result
-    else:
-        return str(policy_result)
+    return str(policy_result)
+
+
+def generate_research_prompts(countries, indicators):
+    """Generate research prompts for all country-indicator combinations"""
+    research_prompts = []
+    for country in countries:
+        for indicator in indicators:
+            print(f"Processing: {country} - {indicator}")
+            response = generate_research_prompt(country, indicator)
+            research_prompts.append(
+                {
+                    "country": country,
+                    "indicator": indicator,
+                    "response": response,
+                }
+            )
+    return research_prompts
+
+
+def research_policies(research_prompts):
+    """Research policies using the generated prompts"""
+    responses = {}
+    for prompt_data in research_prompts:
+        policy_result = research_policy(prompt_data["response"])
+        responses[(prompt_data["country"], prompt_data["indicator"])] = policy_result
+    return responses
 
 
 def summarize_policy_responses(policy_responses):
     """Summarize policy responses using the summarise_report function"""
     print("Summarizing policy research results...")
     policy_summaries = {}
-
     for (country, indicator), policy_result in policy_responses.items():
-        try:
-            summary = summarise_report(policy_result)
-            policy_summaries[(country, indicator)] = summary
-            print(f"Summarized {country} - {indicator}: {summary}")
-        except Exception as e:
-            print(f"Error summarizing policy for {country} - {indicator}: {e}")
-            policy_summaries[(country, indicator)] = "Unknown"
-
+        content = extract_content_from_response(policy_result)
+        summary = summarise_report(content)
+        policy_summaries[(country, indicator)] = summary
+        print(f"Summarized {country} - {indicator}: {summary}")
     return policy_summaries
 
 
-def write_results(research_prompts, policy_responses, policy_summaries=None):
+def write_results(research_prompts, policy_responses, policy_summaries):
     """Write results to output files"""
     # Write prompts to output.json
     with open("output.json", "w") as f:
@@ -111,150 +118,34 @@ def write_results(research_prompts, policy_responses, policy_summaries=None):
         for (country, indicator), policy_result in policy_responses.items():
             f.write(f"{country}\t{indicator}\t{policy_result}\n")
 
-    # Write policy summaries to a separate TSV file
-    if policy_summaries:
-        with open("policy_summaries.tsv", "w") as f:
-            f.write("Country\tIndicator\tSummary\n")
-            for (country, indicator), summary in policy_summaries.items():
-                f.write(f"{country}\t{indicator}\t{summary}\n")
+    # Write policy summaries to TSV
+    with open("policy_summaries.tsv", "w") as f:
+        f.write("Country\tIndicator\tSummary\n")
+        for (country, indicator), summary in policy_summaries.items():
+            f.write(f"{country}\t{indicator}\t{summary}\n")
 
 
 def main():
     """Main function to orchestrate the policy research process"""
-    try:
-        # Load data
-        countries, indicators = load_data()
+    # Load data
+    countries, indicators = load_data()
+    indicators = get_leaf_indicators(indicators)
 
-        # Get all leaf indicators
-        all_indicators = get_leaf_indicators(indicators)
+    # Generate research prompts
+    research_prompts = generate_research_prompts(countries[:1], indicators[:1])
 
-        # Generate research prompts
-        research_prompts = generate_research_prompts(countries[:1], all_indicators[:1])
+    # Research policies
+    policy_responses = research_policies(research_prompts)
 
-        # Research policies
-        policy_responses = research_policies(research_prompts)
+    # Summarize policy responses to Yes/No etc
+    policy_summaries = summarize_policy_responses(policy_responses)
 
-        # Summarize policy responses
-        policy_summaries = summarize_policy_responses(policy_responses)
+    # Write results
+    write_results(research_prompts, policy_responses, policy_summaries)
 
-        # Write results
-        write_results(research_prompts, policy_responses, policy_summaries)
-
-        print(
-            f"Completed processing {len(research_prompts)} prompts and {len(policy_responses)} policy research tasks"
-        )
-
-    except Exception as e:
-        print(f"Error in main: {e}")
-        return 1
-
-    return 0
-
-
-def generate_research_prompt(country: str, indicator: str):
-    """Generate research prompt using Perplexity API"""
-    SONAR_API_KEY = os.environ.get("SONAR_API_KEY")
-
-    if not SONAR_API_KEY:
-        raise ValueError("SONAR_API_KEY environment variable not set")
-
-    url = "https://api.perplexity.ai/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {SONAR_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    prompt = GEN_RESEARCH_PROMPT.replace("{indicator}", indicator, 1)
-    prompt = prompt.replace("{country}", country, 1)
-
-    payload = {"model": "sonar-pro", "messages": [{"role": "user", "content": prompt}]}
-
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-
-        return response.json()["choices"][0]["message"]["content"]
-
-    except requests.exceptions.RequestException as e:
-        print(f"API request error for {country} - {indicator}: {e}")
-        return None
-    except KeyError as e:
-        print(f"Unexpected API response format for {country} - {indicator}: {e}")
-        return None
-
-
-def research_policy(prompt: str) -> str:
-    """Research policy using Perplexity deep research API"""
-    SONAR_API_KEY = os.environ.get("SONAR_API_KEY")
-
-    if not SONAR_API_KEY:
-        raise ValueError("SONAR_API_KEY environment variable not set")
-
-    url = "https://api.perplexity.ai/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {SONAR_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        "model": "sonar-deep-research",
-        "messages": [{"role": "user", "content": prompt}],
-    }
-
-    try:
-        response = requests.post(url, json=payload, headers=headers)
-        response.raise_for_status()
-
-        return response.json()["choices"][0]["message"]["content"]
-
-    except requests.exceptions.RequestException as e:
-        print(f"API request error during policy research: {e}")
-        return ""
-    except KeyError as e:
-        print(f"Unexpected API response format during policy research: {e}")
-        return ""
-
-
-def summarise_report(content: str) -> str:
-    """
-    Use Sonar API to extract Yes/No/Partial/Unknown determination from research content.
-
-    Args:
-        content: The research report content from the API
-
-    Returns:
-        One of: "Yes", "No", "Partial", "Unknown"
-    """
-    SONAR_API_KEY = os.environ.get("SONAR_API_KEY")
-
-    if not SONAR_API_KEY:
-        raise ValueError("SONAR_API_KEY environment variable not set")
-
-    if not content or not isinstance(content, str):
-        return "Unknown"
-
-    url = "https://api.perplexity.ai/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {SONAR_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    prompt = SUMMARIZE_REPORT_PROMPT.format(content=content)
-
-    payload = {"model": "sonar-pro", "messages": [{"role": "user", "content": prompt}]}
-
-    try:
-        response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-
-        result = response.json()["choices"][0]["message"]["content"].strip()
-        return result
-    except requests.exceptions.RequestException as e:
-        print(f"API request error during report summarization: {e}")
-        return "Unknown"
-    except KeyError as e:
-        print(f"Unexpected API response format during report summarization: {e}")
-        return "Unknown"
+    print(
+        f"Completed processing {len(research_prompts)} prompts and {len(policy_responses)} policy research tasks"
+    )
 
 
 if __name__ == "__main__":
