@@ -11,8 +11,15 @@ REQUIREMENTS FOR YOUR GENERATED PROMPT:
 1. The prompt must be self-contained and require no follow-up clarifications
 2. It should request a clear determination: Yes/No/Partial/Unknown
 3. It should ask for official sources, regulatory references, and implementation dates
-4. It should define technical terms using the provided definitions when applicable
-5. It should specify searching official government sources, national regulatory authority websites, and pharmaceutical regulations
+4. It should specify searching official government sources, national regulatory authority websites, and pharmaceutical regulations
+
+REFERENCES:
+- ASEAN Key Documents and Publications: https://asean.org/our-communities/economic-community/standard-and-conformance/key-documents-publications/
+- ASEAN Agreements and Declarations: https://asean.org/our-communities/economic-community/standard-and-conformance/agreements-and-declarations/
+- For Indonesia specifically:
+  - BPOM Latest News: https://www.pom.go.id/berita
+  - BPOM Press Release: https://www.pom.go.id/siaran-pers
+  - Indonesian Food and Drug Monitoring Agency Legal Documentation: https://jdih.pom.go.id/
 
 INPUT FORMAT:
 - Country: [COUNTRY]
@@ -23,23 +30,17 @@ Generate a prompt following this structure:
 
 "Research whether [COUNTRY] [SPECIFIC POLICY REQUIREMENT]. 
 
-Definitions for reference:
-[Include only relevant definitions from the provided list]
-
 Please determine:
 1. Implementation status: Yes (fully implemented) / No (not implemented) / Partial (partially implemented) / Unknown (insufficient information)
 2. Supporting evidence: Specific regulations, decrees, or official guidelines that establish this requirement
 3. Implementation details: When it was implemented, any exceptions or special conditions
 4. Verification: Cross-reference multiple sources if possible
 
-Search priority:
-- Official websites of [COUNTRY]'s National Regulatory Authority for pharmaceuticals
-- [COUNTRY]'s Ministry of Health pharmaceutical regulations
-- ASEAN PPWG documents mentioning [COUNTRY]
-- WHO or PIC/S databases if relevant
-- Recent pharmaceutical industry reports or regulatory updates for [COUNTRY]
+Provide a concise summary with the determination first, followed by supporting details.
 
-Provide a concise summary with the determination first, followed by supporting details."
+Useful References:
+[RELEVANT REFERENCES]
+"
 
 EXAMPLE INPUT:
 Country: Vietnam
@@ -54,16 +55,13 @@ Please determine:
 3. Implementation details: When it was implemented, any exceptions or special conditions
 4. Verification: Cross-reference multiple sources if possible
 
-Search priority:
-- Official websites of Vietnam's Drug Administration (DAV) and Ministry of Health
-- Vietnamese pharmaceutical regulations and circulars (especially Circular 32/2018/TT-BYT and updates)
-- ASEAN PPWG documents mentioning Vietnam
-- WHO or PIC/S databases if relevant
-- Recent pharmaceutical industry reports or regulatory updates for Vietnam
+Provide a concise summary with the determination first, followed by supporting details.
 
-Provide a concise summary with the determination first, followed by supporting details."
+Useful References
+- ASEAN Key Documents and Publications: https://asean.org/our-communities/economic-community/standard-and-conformance/key-documents-publications/
+- ASEAN Agreements and Declarations: https://asean.org/our-communities/economic-community/standard-and-conformance/agreements-and-declarations/"
 
 NOW GENERATE THE RESEARCH PROMPT FOR:
-Country: {{country}}
-Indicator: {{indicator}}
+Country: {country}
+Indicator: {indicator}
 """
