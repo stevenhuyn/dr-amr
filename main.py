@@ -57,10 +57,12 @@ Here is an example bare input (normally more context would be given):
 Regulatory Indicators,Technical Dossier Standards,CTD/ACTD Adoption,Mandates ACTD (for generics)
 Vietnam
 
-
 With this input, you will generate an excellent LLM prompt that will be given to Perplexity's Sonar Deep Research to answer whether Vietnam mandates ACTD (for generics).
 
 Below will the the country - policy pair:
+
+{country}
+{indicator}
 """
 
     SONAR_API_KEY = os.environ.get("SONAR_API_KEY")
@@ -76,7 +78,7 @@ Below will the the country - policy pair:
     }
 
     # Define the request payload
-    prompt = f"{promptTemplate}\n\n{country}\n{indicator}"
+    prompt = promptTemplate.replace("{country}", country).replace("{indicator}", indicator)
     print(prompt)
 
     payload = {
