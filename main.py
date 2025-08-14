@@ -27,14 +27,31 @@ def get_leaf_indicators(indicator_data, path=""):
     return leaf_indicators
 
 
-def call_sonar_api(prompt, model="sonar-pro"):
+def call_sonar_api(prompt):
     """Make API call to Perplexity Sonar"""
     url = "https://api.perplexity.ai/chat/completions"
     headers = {
         "Authorization": f"Bearer {os.environ['SONAR_API_KEY']}",
         "Content-Type": "application/json",
     }
-    payload = {"model": model, "messages": [{"role": "user", "content": prompt}]}
+    payload = {"model": "sonar-pro", "messages": [{"role": "user", "content": prompt}]}
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
+
+
+def call_sonar_deep_research_api(prompt):
+    """Make API call to Perplexity Sonar"""
+    url = "https://api.perplexity.ai/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {os.environ['SONAR_API_KEY']}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "sonar-deep-research",
+        "messages": [{"role": "user", "content": prompt}],
+        "reasoning_effort": "low",
+    }
     response = requests.post(url, headers=headers, json=payload)
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"]
@@ -50,7 +67,7 @@ def generate_research_prompt(country, indicator):
 
 def research_policy(prompt):
     """Research policy using Perplexity deep research API"""
-    return call_sonar_api(prompt, "sonar-deep-research")
+    return call_sonar_deep_research_api(prompt)
 
 
 def summarise_report(content):
@@ -59,13 +76,6 @@ def summarise_report(content):
         return "Unknown"
     prompt = SUMMARIZE_REPORT_PROMPT.format(content=content)
     return call_sonar_api(prompt).strip()
-
-
-def extract_content_from_response(policy_result):
-    """Extract content string from various response formats"""
-    if isinstance(policy_result, dict) and "choices" in policy_result:
-        return policy_result["choices"][0]["message"]["content"]
-    return str(policy_result)
 
 
 def generate_research_prompts(countries, indicators):
@@ -99,8 +109,7 @@ def summarize_policy_responses(policy_responses):
     print("Summarizing policy research results...")
     policy_summaries = {}
     for (country, indicator), policy_result in policy_responses.items():
-        content = extract_content_from_response(policy_result)
-        summary = summarise_report(content)
+        summary = summarise_report(policy_result)
         policy_summaries[(country, indicator)] = summary
         print(f"Summarized {country} - {indicator}: {summary}")
     return policy_summaries
