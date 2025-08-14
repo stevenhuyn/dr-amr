@@ -2,6 +2,7 @@ import requests
 from dotenv import load_dotenv
 import os
 import json
+from prompt import GEN_RESEARCH_PROMPT
 
 def main():
     # Load countries and indicators from JSON files
@@ -16,11 +17,11 @@ def main():
         leaf_indicators = []
         if isinstance(data, dict):
             for key, value in data.items():
-                current_path = f"{path},{key}" if path else key
+                current_path = f"{path} > {key}" if path else key
                 leaf_indicators.extend(get_leaf_indicators(value, current_path))
         elif isinstance(data, list):
             for item in data:
-                leaf_indicators.append(f"{path},{item}")
+                leaf_indicators.append(f"{path} > {item}")
         return leaf_indicators
     
     # Get all leaf indicators
@@ -32,8 +33,8 @@ def main():
     # Cross product: iterate through each country and each indicator
 
 
-    for country in countries[:1]:
-        for indicator in all_indicators[:1]:
+    for country in countries[:2]:
+        for indicator in all_indicators[:2]:
             print(f"Processing: {country} - {indicator}")
             result = genResearchPrompt(country, indicator)
             if result:
@@ -50,25 +51,7 @@ def main():
 
 
 def genResearchPrompt(country: str, indicator: str):
-    promptTemplate = """
-For a given country and a given policy, we are trying to see if that country fufills the policy.
-
-Here is an example bare input (normally more context would be given):
-Regulatory Indicators,Technical Dossier Standards,CTD/ACTD Adoption,Mandates ACTD (for generics)
-Vietnam
-
-With this input, you will generate an excellent LLM prompt that will be given to Perplexity's Sonar Deep Research to answer whether Vietnam mandates ACTD (for generics).
-
-Below will the the country - policy pair:
-
-{country}
-{indicator}
-"""
-
     SONAR_API_KEY = os.environ.get("SONAR_API_KEY")
-
-    with open("scope.md") as f:
-        scope = f.read()
 
     # Set up the API endpoint and headers
     url = "https://api.perplexity.ai/chat/completions"
@@ -78,8 +61,7 @@ Below will the the country - policy pair:
     }
 
     # Define the request payload
-    prompt = promptTemplate.replace("{country}", country).replace("{indicator}", indicator)
-    print(prompt)
+    prompt = GEN_RESEARCH_PROMPT.replace("{{indicator}}", indicator, 1).replace("{{country}}", country, 1)
 
     payload = {
         "model": "sonar-pro",
