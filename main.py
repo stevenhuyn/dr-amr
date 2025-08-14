@@ -2,7 +2,7 @@ import requests
 from dotenv import load_dotenv
 import os
 import json
-from prompt import GEN_RESEARCH_PROMPT
+from prompt import GEN_RESEARCH_PROMPT, SUMMARIZE_REPORT_PROMPT
 
 
 def load_data():
@@ -72,7 +72,34 @@ def research_policies(research_prompts):
     return responses
 
 
-def write_results(research_prompts, policy_responses):
+def extract_content_from_response(policy_result):
+    """Extract content string from various response formats"""
+    if isinstance(policy_result, dict) and "choices" in policy_result:
+        return policy_result["choices"][0]["message"]["content"]
+    elif isinstance(policy_result, str):
+        return policy_result
+    else:
+        return str(policy_result)
+
+
+def summarize_policy_responses(policy_responses):
+    """Summarize policy responses using the summarise_report function"""
+    print("Summarizing policy research results...")
+    policy_summaries = {}
+
+    for (country, indicator), policy_result in policy_responses.items():
+        try:
+            summary = summarise_report(policy_result)
+            policy_summaries[(country, indicator)] = summary
+            print(f"Summarized {country} - {indicator}: {summary}")
+        except Exception as e:
+            print(f"Error summarizing policy for {country} - {indicator}: {e}")
+            policy_summaries[(country, indicator)] = "Unknown"
+
+    return policy_summaries
+
+
+def write_results(research_prompts, policy_responses, policy_summaries=None):
     """Write results to output files"""
     # Write prompts to output.json
     with open("output.json", "w") as f:
@@ -83,6 +110,13 @@ def write_results(research_prompts, policy_responses):
         f.write("Country\tIndicator\tResult\n")
         for (country, indicator), policy_result in policy_responses.items():
             f.write(f"{country}\t{indicator}\t{policy_result}\n")
+
+    # Write policy summaries to a separate TSV file
+    if policy_summaries:
+        with open("policy_summaries.tsv", "w") as f:
+            f.write("Country\tIndicator\tSummary\n")
+            for (country, indicator), summary in policy_summaries.items():
+                f.write(f"{country}\t{indicator}\t{summary}\n")
 
 
 def main():
@@ -100,8 +134,11 @@ def main():
         # Research policies
         policy_responses = research_policies(research_prompts)
 
+        # Summarize policy responses
+        policy_summaries = summarize_policy_responses(policy_responses)
+
         # Write results
-        write_results(research_prompts, policy_responses)
+        write_results(research_prompts, policy_responses, policy_summaries)
 
         print(
             f"Completed processing {len(research_prompts)} prompts and {len(policy_responses)} policy research tasks"
@@ -168,7 +205,7 @@ def research_policy(prompt: str) -> str:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()
 
-        return response.json()
+        return response.json()["choices"][0]["message"]["content"]
 
     except requests.exceptions.RequestException as e:
         print(f"API request error during policy research: {e}")
@@ -176,6 +213,48 @@ def research_policy(prompt: str) -> str:
     except KeyError as e:
         print(f"Unexpected API response format during policy research: {e}")
         return ""
+
+
+def summarise_report(content: str) -> str:
+    """
+    Use Sonar API to extract Yes/No/Partial/Unknown determination from research content.
+
+    Args:
+        content: The research report content from the API
+
+    Returns:
+        One of: "Yes", "No", "Partial", "Unknown"
+    """
+    SONAR_API_KEY = os.environ.get("SONAR_API_KEY")
+
+    if not SONAR_API_KEY:
+        raise ValueError("SONAR_API_KEY environment variable not set")
+
+    if not content or not isinstance(content, str):
+        return "Unknown"
+
+    url = "https://api.perplexity.ai/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {SONAR_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    prompt = SUMMARIZE_REPORT_PROMPT.format(content=content)
+
+    payload = {"model": "sonar-pro", "messages": [{"role": "user", "content": prompt}]}
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+
+        result = response.json()["choices"][0]["message"]["content"].strip()
+        return result
+    except requests.exceptions.RequestException as e:
+        print(f"API request error during report summarization: {e}")
+        return "Unknown"
+    except KeyError as e:
+        print(f"Unexpected API response format during report summarization: {e}")
+        return "Unknown"
 
 
 if __name__ == "__main__":

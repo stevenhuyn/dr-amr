@@ -65,3 +65,16 @@ NOW GENERATE THE RESEARCH PROMPT FOR:
 Country: {country}
 Indicator: {indicator}
 """
+
+SUMMARIZE_REPORT_PROMPT = """Based on the following pharmaceutical regulatory research report, determine the implementation status and return ONLY one of these four words: Yes, No, Partial, or Unknown.
+
+Guidelines:
+- Yes: Fully implemented/accepted/mandated
+- No: Not implemented/not accepted/no evidence
+- Partial: Partially implemented/conditionally accepted/with exceptions
+- Unknown: Insufficient information to determine
+
+Research Report:
+{content}
+
+Return only the single word determination:"""
